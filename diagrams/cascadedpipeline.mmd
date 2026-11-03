@@ -1,0 +1,14 @@
+%%  Mermaid diagram for approach 1 - Cascaded Pipeline 
+flowchart
+    A[browser]:::smNode --"audio"--> B["WebRTC"]:::bigNode
+    B --"audio"--> A
+    B --"speech (Vaal)" --> C[SST<br><i>deepgram</i><br><i>AssemblyAI</i>]:::medNode
+    C --"text (turn detection)"--> B
+    B --"text"--> D[LLM<br><i>Llama 3 8B</i><br><i>Qwen 8B</i>]:::medNode
+    D --"stream text"--> B
+    B --"stream text"--> E[TTS <br><i>ElevenLabs</i><br><i>Cartesian</i>]:::medNode
+    E --"speech"--> B
+
+    classDef bigNode font-size:18px,padding: 700px;
+    classDef medNode font-size:18px,padding: 80px;
+    classDef smNode font-size:18px,padding: 50px;
