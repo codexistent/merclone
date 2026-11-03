@@ -1,0 +1,11 @@
+%% Mermaid diagram for AI Interviewer architecture, approach 1 - direct server connection
+flowchart
+    A[Browser]:::bigNode <--"WebRTC, ephemeral token"--> B[AI Model]:::smNode
+
+    A --"get token"--> C[Backend]:::smNode
+    C --"ephemeral token"--> A
+
+    classDef bigNode font-size:18px,padding: 500px;
+    classDef smNode font-size:18px;
+    
+    %% added two way arrows between backend and server by hand

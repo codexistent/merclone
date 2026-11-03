@@ -1,0 +1,10 @@
+%%  Mermaid diagram for approach 2 - Voice model
+flowchart
+    A[browser]:::smNode --"audio"--> B["WebRTC Server"]:::bigNode
+    B --"audio"--> A
+    B --> C[Voice model]:::bigNode
+    C --> B
+
+    classDef bigNode font-size:18px,padding: 300px;
+    classDef medNode font-size:18px,padding: 80px;
+    classDef smNode font-size:18px,padding: 50px;
