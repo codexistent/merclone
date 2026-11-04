@@ -8,14 +8,18 @@
     "typecheck": "bun check"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.23.1",
+    "prisma": "^8.0.0-rc.30"
   },
   "peerDependencies": {
     "typescript": "^7"
   },
   "dependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "axios": "^1.21.0",
+    "cors": "^2.8.6",
     "express": "^5.3.0",
     "zod": "^4.6.7"
   }

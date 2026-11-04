@@ -1,9 +1,12 @@
 import express from "express";
 import { PreInterviewBody } from "./types";
 import axios from "axios";
+import cors from "cors";
+import { scrapeGitHub } from "./scrapers/github";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/api/v1/pre-interview", async (req, res) => {
   const { success, data } = PreInterviewBody.safeParse(req.body);
@@ -27,17 +30,12 @@ app.post("/api/v1/pre-interview", async (req, res) => {
   // const linkedinUsername = linkedinUrl.split("/").pop();
 
   // GitHub
-  const userRepos = await axios.get(
-    `https://api.github.com/users/${githubUsername}/repos`,
-  );
-  const filteredUserRepos = userRepos.data.map((x: any) => ({
-    description: x.description,
-    name: x.name,
-    fullName: x.full_name,
-    starCount: x.stargazers_count,
-  }));
-
-  console.log(filteredUserRepos);
+  const githubData = await scrapeGitHub(githubUsername ?? "guest");
+  res.json({ github: githubData });
 
   // TODO: LinkedIn or other accounts
+});
+
+app.listen(3001, () => {
+  console.log("Backend running at http://localhost:3001");
 });
