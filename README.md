@@ -21,10 +21,7 @@ The implementation, however, is not as trivial as it may seem from the surface. 
    d. Small language Model, SLM for reasoning about user responses. A larger model would have more latency which would not be ideal.
    e. For adding video for interviewer, you'd need to add real-time video generation model. Less of these--or at least, quality open-source ones--currently exist compared to TTS and STT models, and otherwise non-self hosted models are typically very expensive (i.e. 5x more than for steps a-d).
 
-The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Part 2: AI Interviewer, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, for Part 2:
-
-- The Database Setup part referenced the tutorial video
-- For all other portions, Claude Code was used to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own
+The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Parts 2-3, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, for these parts, Claude Code was used to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own
 
 # Architecture
 
@@ -165,6 +162,7 @@ We built the first version of our app using the following languages, libraries a
 - **Zod**, a TS validation library
 - **Prisma** for talking with our db
 - **PostgreSQL** for our database
+- **Gemini AI Studio** for its voice and text APIs
 
 Our primary file structure reads cleanly as:
 
@@ -200,7 +198,13 @@ To clean things up, we first kicked things off by adding routing to our app and 
 
 We started by building our system prompts within `apps/backend/prompts.ts`. These are the first things passed to Gemini to give it context on its role and the interviewee. Here, we briefly used AI to formalize our prompt texts. This was to ensure the prompts were optimized for an AI model's understanding.
 
-### Grader
+### Live Interview
+
+There are a few key connections which work together to make the live interviews possible:
+
+- **Gemini bridge**- instead of a sideband, we use one Gemini bridge (an open source dev tool) per interview to connect the browser's socket and our backend to the Gemini session
+
+## Part 3: Grader
 
 All grading logic lives in `apps/backend/results.ts`.
 
