@@ -3,6 +3,7 @@ import { PreInterviewBody } from "./types";
 import axios from "axios";
 import cors from "cors";
 import { scrapeGitHub } from "./scrapers/github";
+import { prisma } from "./db";
 
 const app = express();
 app.use(express.json());
@@ -31,9 +32,18 @@ app.post("/api/v1/pre-interview", async (req, res) => {
 
   // GitHub
   const githubData = await scrapeGitHub(githubUsername ?? "guest");
-  res.json({ github: githubData });
 
   // TODO: LinkedIn or other accounts
+
+  // interview added to db
+  const interview = await prisma.interview.create({
+    data: {
+      githubMetadata: JSON.stringify(githubData),
+      status: "Pre",
+    },
+  });
+
+  res.json({ id: interview.id });
 });
 
 app.listen(3001, () => {

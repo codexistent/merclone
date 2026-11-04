@@ -142,6 +142,8 @@ We built the first version of our app using the following languages, libraries a
 - **TailwindCSS** for stylingr
 - **Express.js** library for backend
 - **Zod**, a TS validation library
+- **Prisma** for talking with our db
+- **PostgreSQL** for our database
 
 Our primary file structure reads cleanly as:
 
@@ -152,12 +154,12 @@ To initialize our project, we use the command-line package executor `bunx` (over
 
 ## Part 1: Scrape
 
+We started by building the homepage before the users go into the interview, as well as the scraping functionality for the data the user enters into the pre-interview page form.
+
 ### Frontend
 
 We set up React as our frontend and Express.js as our backend library with `bunx`. Next, in `App.jsx`, we put up a simple interview kickstart page which prompts the user for their GitHub (and in the future, possibly LinkedIn/other account) links. If the user inputs are invalid--which we check via the `Zod` validation library--then we give them a toast message (ShadCN `sonner` component):
 ![kickstarttoast](docs/media/kickstartToast.png)
-
-Our frontend pages are currently implemented via storing a state called `page` in `App.tsx` which either has value `form`, `interview`, or `result` and switches to either the `Form.tsx`, `Interview.tsx`, or `Result.tsx` components respectively based on the state. In the future, we will and should switch this to a React App Router-type setup instead, but this will suffice for the time being.
 
 ### Backend
 
@@ -166,3 +168,11 @@ The frontend to backend workflow runs as folows:
 - Once the user fills out the interview form, `Form.tsx` makes an HTTP POST request using the axios library to `localhost:3001/api/v1/pre-interview` with the collected `{ github }` values as JSON in the body
 - In `backend/index.ts`, an express listener detects this (`app.post("/api/v1/pre-interview", async ...`), turning the raw body into `req.body`, preforming validation checks and fetching GitHub
 - Express sends the result back to frontend, where in `Form.tsx`, the function `await axios.post(...)` awaits the data.
+
+## Part 2: Interviewer
+
+Next, we built out the actual AI interviewer.
+
+To clean things up, we kicked things off by adding routing to our app.
+
+Now we need to add our interviews to a db, and for this we set PostgreSQL as our database and in `schema.prisma`, defined the models `Interview` and `Message` which store info on an interview and specific messages (of, for instance, conversations between a user and an AI model) respectively. Then we spun up our Prisma Client, and for local development temporarily used a locally containerized PostgreSQL server hosted via Docker.
