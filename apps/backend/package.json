@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "dev": "bun --hot index.ts",
     "typecheck": "bun check"
   },
   "devDependencies": {
