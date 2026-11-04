@@ -21,7 +21,10 @@ The implementation, however, is not as trivial as it may seem from the surface. 
    d. Small language Model, SLM for reasoning about user responses. A larger model would have more latency which would not be ideal.
    e. For adding video for interviewer, you'd need to add real-time video generation model. Less of these--or at least, quality open-source ones--currently exist compared to TTS and STT models, and otherwise non-self hosted models are typically very expensive (i.e. 5x more than for steps a-d).
 
-The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Part 2: AI Interviewer, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, except for Part 2's Database Setup part (which referenced the tutorial video), for the interviewer I used Claude Code to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own.
+The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Part 2: AI Interviewer, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, for Part 2:
+
+- The Database Setup part referenced the tutorial video
+- For all other portions, Claude Code was used to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own
 
 # Architecture
 
@@ -140,10 +143,13 @@ Advantages:
 Disadvantages:
 
 - greater latency
+- less stable browser <-> AI model connection
 
 ![backend centered architecture diagram](docs/media/backendcentered.png)
 
 The next most obvious approach is to have all communication centered at the backend. Ofcourse here, we trade off latency for security.
+
+Gemini also doesn't use WebRTC, so if we wanted to we'd need a translator/media server in between. Although WebRTC handles bad internet well, we'll simply send raw audio via a Websocket instead. This does risk the Websocket freezing/stuterring issues if internet connection is unstable. If this ends up causing issues down the line, tools like LiveKit or Pipecat can be added later.
 
 Approach 4 is the method we used for Merclone.
 
@@ -188,12 +194,14 @@ The frontend to backend workflow runs as folows:
 
 Next, we built out the actual AI interviewer.
 
-To clean things up, we first kicked things off by adding routing to our app.
+To clean things up, we first kicked things off by adding routing to our app and adding our interviews to a db. For the latter, we set PostgreSQL as our database and in `schema.prisma`, defined the models `Interview` and `Message` which store info on an interview and specific messages (of, for instance, conversations between a user and an AI model) respectively. Then we spun up our Prisma Client, and for local development temporarily used a locally containerized PostgreSQL server hosted via Docker.
 
-### Database Setup
+### System Prompts
 
-Now we need to add our interviews to a db, and for this we set PostgreSQL as our database and in `schema.prisma`, defined the models `Interview` and `Message` which store info on an interview and specific messages (of, for instance, conversations between a user and an AI model) respectively. Then we spun up our Prisma Client, and for local development temporarily used a locally containerized PostgreSQL server hosted via Docker.
+We started by building our system prompts within `apps/backend/prompts.ts`. These are the first things passed to Gemini to give it context on its role and the interviewee. Here, we briefly used AI to formalize our prompt texts. This was to ensure the prompts were optimized for an AI model's understanding.
 
-### WebRTC
+### Grader
 
-Next, we bring our AI model into the picture. We allow the client and AI server (Gemini, in this case) to communicate by setting up a WebRTC protocol.
+All grading logic lives in `apps/backend/results.ts`.
+
+After the interview, we call Gemini again--not a live voice, but a text model--to generate feedback and process the interview results. The function `finishInterview()` implements this logic. It triggers once after the end of each interview. Before calling `grade()`, it starts by querying the database for the interview to see if its status is still `InProgress` (which means we are yet to grade the transcript). If so, we switch the interview's status to `Grading`, asyncronously fetch Gemini's graded results, and post both these results and the new status `Done` to the interview which we identify again via id.
