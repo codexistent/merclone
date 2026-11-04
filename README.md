@@ -29,9 +29,9 @@ We start off by considering our approach for data scraping, then the general arc
 
 ## Data Scraping
 
-Before the user can enter their interview, we want to allow them to enter their LinkedIn and GitHub links and scrape data from these sources without going through a third-party service.
+Before the user can enter their interview, we want to allow them to enter their LinkedIn (in a future version) and GitHub links and scrape data from these sources without going through a third-party service.
 
-For **GitHub**, this is relatively straightforward and we can do it directly via their API. For **LinkedIn**, it is a bit less tedious: there is no API, so we can only open the webpage via a browser and scrape as much as we can from it. Doing this in-house can quickly result in rate limits, which is why we will use a proxy server to scrape LinkedIn instead. This way, it will not see the same IP every time we hit it and we are thus not rate-restricted.
+For **GitHub**, this is relatively straightforward and we can do it directly via their API. On the other hand, **LinkedIn**, due to its complexity, will be added on later. For context/as a touch on a potential solution path though, since LinkedIn has no API, we can only open the webpage via a browser and scrape as much as we can from it. Doing this in-house can quickly result in rate limits, which is why we would use a proxy server to scrape LinkedIn instead. This way, it will not see the same IP address every time we hit and thus do not get rate-restricted.
 
 ![data scraping architecture](docs/media/scraping.png)
 
@@ -132,12 +132,37 @@ There are several key security guardrails here: to begin with, the client cannot
 
 Therefore, while adding a websocket connection does not prevent the user from attempting to manipulate via their inputs, it does give the browser fuller, more accurate, and more up-to-date context on what is going on between their conversation.
 
-# Development
+# Development - V1.0
+
+We built the first version of our app using the following languages, libraries and frameworks:
+
+- **React** JS library for frontend
+- **Axios**, an HTTP client library for JS/TS environments
+- **ShadCN** for styling
+- **TailwindCSS** for stylingr
+- **Express.js** library for backend
+- **Zod**, a TS validation library
 
 Our primary file structure reads cleanly as:
 
 - `apps/backend` for all our backend code
 - `apps/frontend` for all our frontend code
-  - For the frontend, we use React as our framework and Shadcn + Tailwindcss for styling.
 
 To initialize our project, we use the command-line package executor `bunx` (over `npx`, because the former has substantially faster startup times).
+
+## Part 1: Scrape
+
+### Frontend
+
+We set up React as our frontend and Express.js as our backend library with `bunx`. Next, in `App.jsx`, we put up a simple interview kickstart page which prompts the user for their GitHub (and in the future, possibly LinkedIn/other account) links. If the user inputs are invalid--which we check via the `Zod` validation library--then we give them a toast message (ShadCN `sonner` component):
+![kickstarttoast](docs/media/kickstartToast.png)
+
+Our frontend pages are currently implemented via storing a state called `page` in `App.tsx` which either has value `form`, `interview`, or `result` and switches to either the `Form.tsx`, `Interview.tsx`, or `Result.tsx` components respectively based on the state. In the future, we will and should switch this to a React App Router-type setup instead, but this will suffice for the time being.
+
+### Backend
+
+The frontend to backend workflow runs as folows:
+
+- Once the user fills out the interview form, `Form.tsx` makes an HTTP POST request using the axios library to `localhost:3001/api/v1/pre-interview` with the collected `{ github }` values as JSON in the body
+- In `backend/index.ts`, an express listener detects this (`app.post("/api/v1/pre-interview", async ...`), turning the raw body into `req.body`, preforming validation checks and fetching GitHub
+- Express sends the result back to frontend, where in `Form.tsx`, the function `await axios.post(...)` awaits the data.
