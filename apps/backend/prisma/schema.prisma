@@ -3,6 +3,12 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+/*
+  To save/update changes for Prisma file, do:
+      bunx prisma migrate dev --name your-version-name
+      bunx prisma generate
+*/
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -15,17 +21,22 @@ datasource db {
 model Interview {
   id              String          @id     @default(uuid())
   githubMetadata  Json
-  status          InterviewStatus 
-  score           Int             @default(0)
+  status          InterviewStatus @default(Pre)
+  score           Int?
+  feedback        String?
+  createdAt       DateTime        @default(now())
   conversations   Message[]
 }
 
 model Message {
   id              String          @id     @default(uuid())
-  message         String
-  type            MessageType
   interviewId     String 
   interview       Interview       @relation(fields: [interviewId], references: [id])
+  type            MessageType
+  message         String
+  createdAt       DateTime        @default(now())
+
+  @@index([interviewId, createdAt])
 }
 
 enum MessageType {
@@ -36,5 +47,7 @@ enum MessageType {
 enum InterviewStatus {
   Pre 
   InProgress
+  Grading
   Done
+  Failed
 }

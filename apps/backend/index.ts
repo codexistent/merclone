@@ -26,7 +26,6 @@ app.post("/api/v1/pre-interview", async (req, res) => {
   //     ? data.linkedin.slice(0, -1)
   //     : data.linkedin;
 
-  // TODO: url can be supa malformed, maybe use SLM here
   const githubUsername = githubUrl.split("/").pop();
   // const linkedinUsername = linkedinUrl.split("/").pop();
 
