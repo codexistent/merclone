@@ -10,6 +10,8 @@ export function Form() {
   const [github, setGithub] = useState("");
   // const [linkedin, setLinkedin] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   async function onSubmit() {
@@ -33,6 +35,8 @@ export function Form() {
       // }
       return;
     }
+
+    setLoading(true);
 
     // post github and linkedin info for api to fetch
     const response = await axios.post(`${BACKEND_URL}/api/v1/pre-interview`, {
@@ -62,7 +66,9 @@ export function Form() {
           />
         </div>
         <div className="flex justify-center p-4">
-          <Button onClick={onSubmit}>Start Interview</Button>
+          <Button disabled={loading} onClick={onSubmit}>
+            {loading ? "Starting Interview..." : "Start Interview"}
+          </Button>
         </div>
       </div>
     </div>

@@ -12,5 +12,5 @@ export async function scrapeGitHub(username: string) {
     starCount: x.stargazers_count,
   }));
 
-  console.log(filteredUserRepos);
+  return filteredUserRepos;
 }

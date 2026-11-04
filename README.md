@@ -175,4 +175,10 @@ Next, we built out the actual AI interviewer.
 
 To clean things up, we kicked things off by adding routing to our app.
 
+### Database
+
 Now we need to add our interviews to a db, and for this we set PostgreSQL as our database and in `schema.prisma`, defined the models `Interview` and `Message` which store info on an interview and specific messages (of, for instance, conversations between a user and an AI model) respectively. Then we spun up our Prisma Client, and for local development temporarily used a locally containerized PostgreSQL server hosted via Docker.
+
+### WebRTC
+
+Next, we bring our AI model into the picture. We allow the client and AI server (Gemini, in this case) to communicate by setting up a WebRTC protocol.

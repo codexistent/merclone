@@ -38,7 +38,7 @@ app.post("/api/v1/pre-interview", async (req, res) => {
   // interview added to db
   const interview = await prisma.interview.create({
     data: {
-      githubMetadata: JSON.stringify(githubData),
+      githubMetadata: githubData,
       status: "Pre",
     },
   });
