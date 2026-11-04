@@ -24,7 +24,7 @@ The code and architecture analysis primarily references and builds on this tutor
 
 # Architecture
 
-We start off by considering the general architecture of voice agents, then move on to the more niche architecture of our AI interviewer app.
+We start off by considering the general architecture of voice agents, then move on to the more niche architecture of our AI interviewer app. The documentation below comes from a combination of what was covered in the video and my own explanations/considerations.
 
 ## Voice Agent Architectures
 
@@ -87,7 +87,7 @@ Architecture Diagram:
 
 In this approach, we connect the browser directly to our AI server/model, making for a low-latency user experience.
 
-The main tradeoffs are twofold: To begin with, it risks users manipulating the system prompt (since it is passed directly from the client to the server without, say, guardrails that going through a backend could be implemented). It also means we can't have any record of the AI conversations, since our server is never a part of this communication exchange between the client and model.
+The main tradeoffs are twofold: To begin with, it risks users manipulating the system prompt (since it is passed directly from the client to the server). It also means we can't have any record of the AI conversations, since our server is never a part of this communication exchange between the client and model.
 
 ### Approach 2: Approach 1, but record the convos
 
@@ -95,9 +95,23 @@ Advantages:
 - Fast
 
 Tradeoffs
-- Clients can still manipulate server prompts
+- Clients can still manipulate server prompt
 
 Architecture diagram:
 ![readme/images/serverdirect2.png](readme/images/serverdirect2.png)
 
 The only difference between this and the prior approach is that we record the conversations with the backend.
+
+### Approach 3: Websocket connection
+
+Advantages:
+- backend gets live stream of convo
+- system prompt sent by backend
+
+![readme/images/backendwebsocket.png](readme/images/backendwebsocket.png)
+
+The same architecture as approach 1, except we add a websocket connection between the browser and the AI server.
+
+There are several key security guardrails here: to begin with, the client cannot manipulate the server prompt, because it is the backend which sends it. Also, the AI-client communication records are passed directly/in real-time between the AI server and backend (instead of passed through the browser, where the risk is that the browser/client could manipulate the data). Finally, the backend would now have greater context as to why, for instance, certain functions are called.
+
+Therefore, while adding a websocket connection does not prevent the user from attempting to manipulate via their inputs, it does give the browser fuller, more accurate, and more up-to-date context on what is going on between their conversation.
