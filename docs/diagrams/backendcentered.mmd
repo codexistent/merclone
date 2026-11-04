@@ -1,0 +1,10 @@
+%% Mermaid diagram for data scraping architecture
+flowchart
+    A[Browser]:::bigNode <--"websocket"--> B[Backend]:::bigNode <--"one time, for grading"--> E[Gemini text model]
+    B <--"websocket"--> C[Gemini Live]:::bigNode
+    B <--"Prisma"--> F[(Postgres)]
+
+    classDef bigNode padding: 100px;
+    style A fill:#dcfce7,stroke:#166534,stroke-width:2px,color:#14532d
+    style B fill:#dcfce7,stroke:#166534,stroke-width:2px,color:#14532d
+    style C fill:#dcfce7,stroke:#166534,stroke-width:2px,color:#14532d

@@ -21,7 +21,7 @@ The implementation, however, is not as trivial as it may seem from the surface. 
    d. Small language Model, SLM for reasoning about user responses. A larger model would have more latency which would not be ideal.
    e. For adding video for interviewer, you'd need to add real-time video generation model. Less of these--or at least, quality open-source ones--currently exist compared to TTS and STT models, and otherwise non-self hosted models are typically very expensive (i.e. 5x more than for steps a-d).
 
-The code and architecture analysis primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations.
+The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Part 2: AI Interviewer, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, except for Part 2's Database Setup part (which referenced the tutorial video), for the interviewer I used Claude Code to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own.
 
 # Architecture
 
@@ -50,7 +50,6 @@ Tradeoffs:
 
 - slower
 
-Architecture diagram:
 ![docs/media/cascadedpipeline.png](docs/media/cascadedpipeline.png)
 
 Consists of three models: SST, LLM, TTS.
@@ -73,7 +72,6 @@ Tradeoffs:
 - more expensive
 - dependency lock-in
 
-Architecture diagram:
 ![docs/media/voicemodel.png](docs/media/voicemodel.png)
 
 Consists of a single model which is trained (both inputs and outputs) based on audio, such as OpenAI or Gemini's low-latency voice models.
@@ -95,7 +93,6 @@ Tradeoffs:
 - System prompt directly via client
 - No record of convo, since our server never part of it
 
-Architecture Diagram:
 ![docs/media/serverdirect.png](docs/media/serverdirect.png)
 
 In this approach, we connect the browser directly to our AI server/model, making for a low-latency user experience.
@@ -112,12 +109,11 @@ Tradeoffs
 
 - Clients can still manipulate server prompt
 
-Architecture diagram:
 ![docs/media/serverdirect2.png](docs/media/serverdirect2.png)
 
 The only difference between this and the prior approach is that we record the conversations with the backend.
 
-### Approach 3: Websocket connection
+### Approach 3: Websocket connection (OpenAI)
 
 Advantages:
 
@@ -131,6 +127,25 @@ The same architecture as approach 1, except we add a websocket connection betwee
 There are several key security guardrails here: to begin with, the client cannot manipulate the server prompt, because it is the backend which sends it. Also, the AI-client communication records are passed directly/in real-time between the AI server and backend (instead of passed through the browser, where the risk is that the browser/client could manipulate the data). Finally, the backend would now have greater context as to why, for instance, certain functions are called.
 
 Therefore, while adding a websocket connection does not prevent the user from attempting to manipulate via their inputs, it does give the browser fuller, more accurate, and more up-to-date context on what is going on between their conversation.
+
+While the video tutorial implements this approach, it is dependent on using the OpenAI API and the fact that it supports a sideband; Gemini does not.
+
+### Approach 4: Backend Centered (Gemini)
+
+Advantages:
+
+- backend gets livestream of convo
+- system prompt sent by backend
+
+Disadvantages:
+
+- greater latency
+
+![backend centered architecture diagram](docs/media/backendcentered.png)
+
+The next most obvious approach is to have all communication centered at the backend. Ofcourse here, we trade off latency for security.
+
+Approach 4 is the method we used for Merclone.
 
 # Development - V1.0
 
@@ -173,9 +188,9 @@ The frontend to backend workflow runs as folows:
 
 Next, we built out the actual AI interviewer.
 
-To clean things up, we kicked things off by adding routing to our app.
+To clean things up, we first kicked things off by adding routing to our app.
 
-### Database
+### Database Setup
 
 Now we need to add our interviews to a db, and for this we set PostgreSQL as our database and in `schema.prisma`, defined the models `Interview` and `Message` which store info on an interview and specific messages (of, for instance, conversations between a user and an AI model) respectively. Then we spun up our Prisma Client, and for local development temporarily used a locally containerized PostgreSQL server hosted via Docker.
 
