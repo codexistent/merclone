@@ -1,24 +1,21 @@
+import { useState } from "react";
 import "../styles/globals.css";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
+import { Form } from "./components/Form";
+import { Interview } from "./components/Interview";
+import { Result } from "./components/Result";
+import { Toaster } from "@/components/ui/sonner";
 
 export function App() {
+  // stores what state page should be in
+  // TODO: use React router instead
+  const [page, setPage] = useState<"form" | "interview" | "result">("form");
+
   return (
-    <div className="h-screen w-screen flex justify-center items-center">
-      <div>
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-          Start Your Interview
-        </h2>
-        <div className="p-2">
-          <Input placeholder="LinkedIn URL" />
-        </div>
-        <div className="p-2">
-          <Input placeholder="GitHub URL" />
-        </div>
-        <div className="flex justify-center p-4">
-          <Button>Start Interview</Button>
-        </div>
-      </div>
+    <div>
+      {page == "form" && <Form />}
+      {page == "interview" && <Interview />}
+      {page == "result" && <Result />}
+      <Toaster position="top-right" />
     </div>
   );
 }
