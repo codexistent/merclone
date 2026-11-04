@@ -33,7 +33,7 @@ Before the user can enter their interview, we want to allow them to enter their 
 
 For **GitHub**, this is relatively straightforward and we can do it directly via their API. For **LinkedIn**, it is a bit less tedious: there is no API, so we can only open the webpage via a browser and scrape as much as we can from it. Doing this in-house can quickly result in rate limits, which is why we will use a proxy server to scrape LinkedIn instead. This way, it will not see the same IP every time we hit it and we are thus not rate-restricted.
 
-![data scraping architecture](readme/images/scraping.png)
+![data scraping architecture](docs/media/scraping.png)
 
 ## Voice Agent Architectures
 
@@ -51,7 +51,7 @@ Tradeoffs:
 - slower
 
 Architecture diagram:
-![readme/images/cascadedpipeline.png](readme/images/cascadedpipeline.png)
+![docs/media/cascadedpipeline.png](docs/media/cascadedpipeline.png)
 
 Consists of three models: SST, LLM, TTS.
 
@@ -74,7 +74,7 @@ Tradeoffs:
 - dependency lock-in
 
 Architecture diagram:
-![readme/images/voicemodel.png](readme/images/voicemodel.png)
+![docs/media/voicemodel.png](docs/media/voicemodel.png)
 
 Consists of a single model which is trained (both inputs and outputs) based on audio, such as OpenAI or Gemini's low-latency voice models.
 
@@ -96,7 +96,7 @@ Tradeoffs:
 - No record of convo, since our server never part of it
 
 Architecture Diagram:
-![readme/images/serverdirect.png](readme/images/serverdirect.png)
+![docs/media/serverdirect.png](docs/media/serverdirect.png)
 
 In this approach, we connect the browser directly to our AI server/model, making for a low-latency user experience.
 
@@ -113,7 +113,7 @@ Tradeoffs
 - Clients can still manipulate server prompt
 
 Architecture diagram:
-![readme/images/serverdirect2.png](readme/images/serverdirect2.png)
+![docs/media/serverdirect2.png](docs/media/serverdirect2.png)
 
 The only difference between this and the prior approach is that we record the conversations with the backend.
 
@@ -124,10 +124,20 @@ Advantages:
 - backend gets live stream of convo
 - system prompt sent by backend
 
-![readme/images/backendwebsocket.png](readme/images/backendwebsocket.png)
+![docs/media/backendwebsocket.png](docs/media/backendwebsocket.png)
 
 The same architecture as approach 1, except we add a websocket connection between the browser and the AI server.
 
 There are several key security guardrails here: to begin with, the client cannot manipulate the server prompt, because it is the backend which sends it. Also, the AI-client communication records are passed directly/in real-time between the AI server and backend (instead of passed through the browser, where the risk is that the browser/client could manipulate the data). Finally, the backend would now have greater context as to why, for instance, certain functions are called.
 
 Therefore, while adding a websocket connection does not prevent the user from attempting to manipulate via their inputs, it does give the browser fuller, more accurate, and more up-to-date context on what is going on between their conversation.
+
+# Development
+
+Our primary file structure reads cleanly as:
+
+- `apps/backend` for all our backend code
+- `apps/frontend` for all our frontend code
+  - For the frontend, we use React as our framework and Shadcn + Tailwindcss for styling.
+
+To initialize our project, we use the command-line package executor `bunx` (over `npx`, because the former has substantially faster startup times).
