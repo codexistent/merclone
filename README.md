@@ -5,7 +5,8 @@ Mercor is a company whose business consists of two primary parts: an AI intervie
 - Talent
   - Select form a list of jobs
   - Upload their resume and join interview
-  - Complete interview with AI; this is authomatically recorded and graded
+  - Complete interview with AI
+    - This should automatically recorded and graded
 - Recruiters/Companies
   - Click into each job listing
   - View candidates' recorded interviews
@@ -20,11 +21,19 @@ The implementation, however, is not as trivial as it may seem from the surface. 
    d. Small language Model, SLM for reasoning about user responses. A larger model would have more latency which would not be ideal.
    e. For adding video for interviewer, you'd need to add real-time video generation model. Less of these--or at least, quality open-source ones--currently exist compared to TTS and STT models, and otherwise non-self hosted models are typically very expensive (i.e. 5x more than for steps a-d).
 
-The code and architecture analysis primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s
+The code and architecture analysis primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations.
 
 # Architecture
 
-We start off by considering the general architecture of voice agents, then move on to the more niche architecture of our AI interviewer app. The documentation below comes from a combination of what was covered in the video and my own explanations/considerations.
+We start off by considering our approach for data scraping, then the general architecture of voice agents, and finally move on to the more niche architecture of our AI interviewer app.
+
+## Data Scraping
+
+Before the user can enter their interview, we want to allow them to enter their LinkedIn and GitHub links and scrape data from these sources without going through a third-party service.
+
+For **GitHub**, this is relatively straightforward and we can do it directly via their API. For **LinkedIn**, it is a bit less tedious: there is no API, so we can only open the webpage via a browser and scrape as much as we can from it. Doing this in-house can quickly result in rate limits, which is why we will use a proxy server to scrape LinkedIn instead. This way, it will not see the same IP every time we hit it and we are thus not rate-restricted.
+
+![data scraping architecture](readme/images/scraping.png)
 
 ## Voice Agent Architectures
 
@@ -55,10 +64,12 @@ Other tools that may be used throughout this process:
 ### Approach 2: Voice model
 
 Advantages:
+
 - faster
 - maintainability/dev experience
 
 Tradeoffs:
+
 - more expensive
 - dependency lock-in
 
@@ -76,9 +87,11 @@ The tradeoffs here are firstly, that it is around $30-40\%$ more expensive, alth
 ### Approach 1: Direct server connection
 
 Advantages:
+
 - Fast
 
 Tradeoffs:
+
 - System prompt directly via client
 - No record of convo, since our server never part of it
 
@@ -92,9 +105,11 @@ The main tradeoffs are twofold: To begin with, it risks users manipulating the s
 ### Approach 2: Approach 1, but record the convos
 
 Advantages:
+
 - Fast
 
 Tradeoffs
+
 - Clients can still manipulate server prompt
 
 Architecture diagram:
@@ -105,6 +120,7 @@ The only difference between this and the prior approach is that we record the co
 ### Approach 3: Websocket connection
 
 Advantages:
+
 - backend gets live stream of convo
 - system prompt sent by backend
 

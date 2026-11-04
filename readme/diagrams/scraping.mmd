@@ -1,0 +1,18 @@
+%% Mermaid diagram for data scraping architecture
+flowchart
+    subgraph GroupName [Frontend]
+        A[linkedin.com/user]
+        ~~~ 
+        B[github.com/user]
+        ~~~ 
+        C[Start Interview]
+    end
+
+    GroupName --> D[Backend]:::bigNode
+
+    D --> E[GitHub]
+    D --> F[proxy<br>server] --> G[LinkedIn]
+    
+    classDef bigNode padding: 100px;
+    style C fill:#fef3c7,stroke:#92400e,stroke-width:2px,color:#451a03
+    style F fill:#dcfce7,stroke:#166534,stroke-width:2px,color:#14532d
