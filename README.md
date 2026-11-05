@@ -215,8 +215,11 @@ There are a few key parts which work together to make the live interviews possib
 - Audio handling - since we have a Websocket instead of WebRTC, we must implement handling raw PCM audio. This code is in `audio.ts` under `frontend/`, because clearly only our browser, and not the backend server, has mic and speakers.
   - ![mic architecture](docs/media/microphone.png)
   - ![speaker architecture](docs/media/speaker.png)
+  
+### Frontend
+The interview frontend lives in `Interview.tsx`. It also uses a new `VoiceOrb.tsx` component for visualizing the speakers' audio levels. 
 
-## Part 3: Grader
+## Part 3: Grader/Results
 
 All grading logic lives in `apps/backend/results.ts`.
 
