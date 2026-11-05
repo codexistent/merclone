@@ -21,7 +21,7 @@ The implementation, however, is not as trivial as it may seem from the surface. 
    d. Small language Model, SLM for reasoning about user responses. A larger model would have more latency which would not be ideal.
    e. For adding video for interviewer, you'd need to add real-time video generation model. Less of these--or at least, quality open-source ones--currently exist compared to TTS and STT models, and otherwise non-self hosted models are typically very expensive (i.e. 5x more than for steps a-d).
 
-The code and architecture analysis primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations.
+The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Parts 2-3, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, for these parts, Claude Code was used to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own
 
 # Architecture
 
@@ -50,7 +50,6 @@ Tradeoffs:
 
 - slower
 
-Architecture diagram:
 ![docs/media/cascadedpipeline.png](docs/media/cascadedpipeline.png)
 
 Consists of three models: SST, LLM, TTS.
@@ -73,7 +72,6 @@ Tradeoffs:
 - more expensive
 - dependency lock-in
 
-Architecture diagram:
 ![docs/media/voicemodel.png](docs/media/voicemodel.png)
 
 Consists of a single model which is trained (both inputs and outputs) based on audio, such as OpenAI or Gemini's low-latency voice models.
@@ -95,7 +93,6 @@ Tradeoffs:
 - System prompt directly via client
 - No record of convo, since our server never part of it
 
-Architecture Diagram:
 ![docs/media/serverdirect.png](docs/media/serverdirect.png)
 
 In this approach, we connect the browser directly to our AI server/model, making for a low-latency user experience.
@@ -112,12 +109,11 @@ Tradeoffs
 
 - Clients can still manipulate server prompt
 
-Architecture diagram:
 ![docs/media/serverdirect2.png](docs/media/serverdirect2.png)
 
 The only difference between this and the prior approach is that we record the conversations with the backend.
 
-### Approach 3: Websocket connection
+### Approach 3: Websocket connection (OpenAI)
 
 Advantages:
 
@@ -132,6 +128,28 @@ There are several key security guardrails here: to begin with, the client cannot
 
 Therefore, while adding a websocket connection does not prevent the user from attempting to manipulate via their inputs, it does give the browser fuller, more accurate, and more up-to-date context on what is going on between their conversation.
 
+While the video tutorial implements this approach, it is dependent on using the OpenAI API and the fact that it supports a sideband; Gemini does not.
+
+### Approach 4: Backend Centered (Gemini)
+
+Advantages:
+
+- backend gets livestream of convo
+- system prompt sent by backend
+
+Disadvantages:
+
+- greater latency
+- less stable browser <-> AI model connection
+
+![backend centered architecture diagram](docs/media/backendcentered.png)
+
+The next most obvious approach is to have all communication centered at the backend. Ofcourse here, we trade off latency for security.
+
+Gemini also doesn't use WebRTC, so if we wanted to we'd need a translator/media server in between. Although WebRTC handles bad internet well, we'll simply send raw audio via a Websocket instead. This does risk the Websocket freezing/stuterring issues if internet connection is unstable. If this ends up causing issues down the line, tools like LiveKit or Pipecat can be added later.
+
+Approach 4 is the method we used for Merclone.
+
 # Development - V1.0
 
 We built the first version of our app using the following languages, libraries and frameworks:
@@ -140,8 +158,11 @@ We built the first version of our app using the following languages, libraries a
 - **Axios**, an HTTP client library for JS/TS environments
 - **ShadCN** for styling
 - **TailwindCSS** for stylingr
-- **Express.js** library for backend
+- **Express.js** framework for backend
 - **Zod**, a TS validation library
+- **Prisma** for talking with our db
+- **PostgreSQL** for our database
+- **Gemini AI Studio** for its voice and text APIs
 
 Our primary file structure reads cleanly as:
 
@@ -152,12 +173,12 @@ To initialize our project, we use the command-line package executor `bunx` (over
 
 ## Part 1: Scrape
 
+We started by building the homepage before the users go into the interview, as well as the scraping functionality for the data the user enters into the pre-interview page form.
+
 ### Frontend
 
 We set up React as our frontend and Express.js as our backend library with `bunx`. Next, in `App.jsx`, we put up a simple interview kickstart page which prompts the user for their GitHub (and in the future, possibly LinkedIn/other account) links. If the user inputs are invalid--which we check via the `Zod` validation library--then we give them a toast message (ShadCN `sonner` component):
 ![kickstarttoast](docs/media/kickstartToast.png)
-
-Our frontend pages are currently implemented via storing a state called `page` in `App.tsx` which either has value `form`, `interview`, or `result` and switches to either the `Form.tsx`, `Interview.tsx`, or `Result.tsx` components respectively based on the state. In the future, we will and should switch this to a React App Router-type setup instead, but this will suffice for the time being.
 
 ### Backend
 
@@ -166,3 +187,33 @@ The frontend to backend workflow runs as folows:
 - Once the user fills out the interview form, `Form.tsx` makes an HTTP POST request using the axios library to `localhost:3001/api/v1/pre-interview` with the collected `{ github }` values as JSON in the body
 - In `backend/index.ts`, an express listener detects this (`app.post("/api/v1/pre-interview", async ...`), turning the raw body into `req.body`, preforming validation checks and fetching GitHub
 - Express sends the result back to frontend, where in `Form.tsx`, the function `await axios.post(...)` awaits the data.
+
+## Part 2: Interviewer
+
+Next, we built out the actual AI interviewer.
+
+To clean things up, we first kicked things off by adding routing to our app and adding our interviews to a db. For the latter, we set PostgreSQL as our database and in `schema.prisma`, defined the models `Interview` and `Message` which store info on an interview and specific messages (of, for instance, conversations between a user and an AI model) respectively. Then we spun up our Prisma Client, and for local development temporarily used a locally containerized PostgreSQL server hosted via Docker.
+
+### System Prompts
+
+We started by building our system prompts within `apps/backend/prompts.ts`. These are the first things passed to Gemini to give it context on its role and the interviewee. Here, we briefly used AI to formalize our prompt texts. This was to ensure the prompts were optimized for an AI model's understanding.
+
+### Live Interview
+
+There are a few key connections which work together to make the live interviews possible:
+
+- **Gemini bridge**- instead of a sideband, we use one Gemini bridge (an open source dev tool) per interview to connect our AI session to the browser's socket and our backend to the Gemini session
+  - This code lives in `liveSession.ts`, where `start()` is triggered first when the browser gets access to user audio mic, and finishing by calling `finishInterview` in `results.ts`. Overall, `liveSession.ts` handles:
+    - Connecting to, maintaining and closing the Websocket connection
+    - Recording messages via Prisma
+    - Updating our db on the status of the interview
+- **Express** framework - handles the talking between the backend, to the database and to the browser. Configured in `index.ts`.
+  - Listens for websocket upgrades
+  - Listens for HTTP requests for and pre-interview and results postings
+  - Calls `InterviewBridge` from `liveSession.ts` which then spins up a Gemini session and starts interview
+
+## Part 3: Grader
+
+All grading logic lives in `apps/backend/results.ts`.
+
+After the interview, we call Gemini again--not a live voice, but a text model--to generate feedback and process the interview results. The function `finishInterview()` implements this logic. It triggers once after the end of each interview. Before calling `grade()`, it starts by querying the database for the interview to see if its status is still `InProgress` (which means we are yet to grade the transcript). If so, we switch the interview's status to `Grading`, asyncronously fetch Gemini's graded results, and post both these results and the new status `Done` to the interview which we identify again via id.
