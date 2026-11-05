@@ -1,0 +1,26 @@
+%%{init: {"flowchart": {"wrappingWidth": 400}}}%%
+
+flowchart LR
+    subgraph Setup["<b>Starting Workflow:</b> Microphone.start()"]
+        direction TB
+        S1["Request mic access<br/><i>getUserMedia()</i>"]
+        S2["Load chunking script<br/><i>Blob + createObjectURL<br/>audioWorklet.addModule()</i>"]
+        S3["Hire chunker<br/><i>new AudioWorkletNode('pcm-capture')</i>"]
+        S4["Plug everything together<br/><i>source.connect(capture)</i>"]
+        S5["Press play<br/><i>ctx.resume()</i>"]
+
+        S1 --> S2 --> S3 --> S4 --> S5
+    end
+
+    subgraph Loop["<b>Async/Continuous Workflow</b>"]
+        direction LR
+        V(["<b>Audio Input</b><br> <i>ctx</i>"])
+        A["Slow to 16 kHz"]
+        W["Chunk into 40 ms chunks<br/><i>PcmCapture.process()</i>"]
+        P["Hand chunk to page<br/><i>port.postMessage</i> to <i>port.onmessage</i>"]
+        WS(["<b>Send to backend</b><br/><i>onChunk</i> to <i>ws.send</i>"])
+        V --> A --> W --> P --> WS
+        A -.-> M["Audio level orb<br><i>createLevelMeter</i>"]
+    end
+
+    Setup ==> Loop

@@ -204,7 +204,7 @@ We started by building our system prompts within `apps/backend/prompts.ts`. Thes
 There are a few key parts which work together to make the live interviews possible:
 
 - **Gemini bridge**- instead of a sideband, we use one Gemini bridge (an open source dev tool) per interview to connect our AI session to the browser's socket and our backend to the Gemini session
-  - This code lives in `liveSession.ts`, where `start()` is triggered first when the browser gets access to user audio mic, and finishing by calling `finishInterview` in `results.ts`. Overall, `liveSession.ts` handles:
+  - Another contributing part of this code lives in `liveSession.ts`, where `start()` is triggered first when the browser gets access to user audio mic, and finishing by calling `finishInterview` in `results.ts`. Overall, `liveSession.ts` handles:
     - Connecting to, maintaining and closing the Websocket connection
     - Recording messages via Prisma
     - Updating our db on the status of the interview
@@ -213,6 +213,8 @@ There are a few key parts which work together to make the live interviews possib
   - Listens for HTTP requests for and pre-interview and results postings
   - Calls `InterviewBridge` from `liveSession.ts` which then spins up a Gemini session and starts interview
 - Audio handling - since we have a Websocket instead of WebRTC, we must implement handling raw PCM audio. This code is in `audio.ts` under `frontend/`, because clearly only our browser, and not the backend server, has mic and speakers.
+  - ![mic architecture](docs/media/microphone.png)
+  - ![speaker architecture](docs/media/speaker.png)
 
 ## Part 3: Grader
 
