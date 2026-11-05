@@ -25,7 +25,7 @@ model Interview {
   score           Int?
   feedback        String?
   createdAt       DateTime        @default(now())
-  conversations   Message[]
+  messages        Message[]
 }
 
 model Message {

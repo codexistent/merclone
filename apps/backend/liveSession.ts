@@ -16,10 +16,12 @@ const VOICE = process.env.GEMINI_VOICE ?? "Kore";
 export class InterviewBridge {
   private gemini: Session | null = null;
   private systemPrompt = "";
-  private resumeHandle: string | undefined;
+  private resumeHandle: string | undefined; // helps resume connection if websocket disconnects
+
   private connectionId = 0; // lets us ignore callbacks from a replaced connection
   private started = false;
   private finished = false;
+
   private userText = "";
   private aiText = "";
   private writes: Promise<unknown> = Promise.resolve(); // keeps messages in order

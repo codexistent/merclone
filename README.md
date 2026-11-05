@@ -158,7 +158,7 @@ We built the first version of our app using the following languages, libraries a
 - **Axios**, an HTTP client library for JS/TS environments
 - **ShadCN** for styling
 - **TailwindCSS** for stylingr
-- **Express.js** library for backend
+- **Express.js** framework for backend
 - **Zod**, a TS validation library
 - **Prisma** for talking with our db
 - **PostgreSQL** for our database
@@ -202,11 +202,15 @@ We started by building our system prompts within `apps/backend/prompts.ts`. Thes
 
 There are a few key connections which work together to make the live interviews possible:
 
-- **Gemini bridge**- instead of a sideband, we use one Gemini bridge (an open source dev tool) per interview to connect the browser's socket and our backend to the Gemini session
-  - This three-way logic lives in `liveSession.ts`, where `start()` is triggered first when the browser gets access to user audio mic, and finishing by calling `finishInterview` in `results.ts`. Overall, `liveSession.ts` handles:
+- **Gemini bridge**- instead of a sideband, we use one Gemini bridge (an open source dev tool) per interview to connect our AI session to the browser's socket and our backend to the Gemini session
+  - This code lives in `liveSession.ts`, where `start()` is triggered first when the browser gets access to user audio mic, and finishing by calling `finishInterview` in `results.ts`. Overall, `liveSession.ts` handles:
     - Connecting to, maintaining and closing the Websocket connection
     - Recording messages via Prisma
     - Updating our db on the status of the interview
+- **Express** framework - handles the talking between the backend, to the database and to the browser. Configured in `index.ts`.
+  - Listens for websocket upgrades
+  - Listens for HTTP requests for and pre-interview and results postings
+  - Calls `InterviewBridge` from `liveSession.ts` which then spins up a Gemini session and starts interview
 
 ## Part 3: Grader
 
