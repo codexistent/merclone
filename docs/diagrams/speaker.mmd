@@ -1,0 +1,9 @@
+flowchart LR
+    subgraph Setup["<b>Sepaker Workflow"]
+        IN(["<b>AI Voice Input</b><br/><i>from server</i>"]) --> P["Int16 to sound<br><i>play(pcm)</i>"]
+        P --> Q["Queue chunk<br/><i>source.start(nextStart)</i>"]
+        P --> c["Audio level orb<br><i>createLevelMeter()</i>"]
+        Q --> s(["<b>Speakers</b>"])
+        YOU(["<b>Your Input</b><br><i>you interrupt</i>"]) --> clear["stop and clear queue<br><i>interrupt()</i>"]
+        clear -.-> Q
+    end
