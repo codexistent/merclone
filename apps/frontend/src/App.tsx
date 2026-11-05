@@ -7,10 +7,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router";
 
 export function App() {
-  // stores what state page should be in
-  // TODO: use React router instead
-  const [page, setPage] = useState<"form" | "interview" | "result">("form");
-
   return (
     <BrowserRouter>
       <Routes>

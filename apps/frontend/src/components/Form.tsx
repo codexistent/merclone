@@ -38,13 +38,21 @@ export function Form() {
 
     setLoading(true);
 
-    // post github and linkedin info for api to fetch
-    const response = await axios.post(`${BACKEND_URL}/api/v1/pre-interview`, {
-      // linkedin,
-      github,
-    });
+    try {
+      // post github and linkedin info for api to fetch
+      const response = await axios.post(`${BACKEND_URL}/api/v1/pre-interview`, {
+        github,
+      });
+      
+      navigate(`/interview/${response.data.id}`);
+    } catch(error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : undefined;
 
-    navigate(`/interview/${response.data.id}`);
+      toast(message ?? "Could not start interview.");
+      setLoading(false);
+    }
   }
 
   return (
