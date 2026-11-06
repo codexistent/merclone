@@ -20,7 +20,7 @@ From a context/business perspective, we can also break down the full functionali
  
 ## Merclone
 
-In Merclone, we will focus on just the three primary parts of an AI interviewer as defined at the very top (at least for the time being):
+Merclone focuses on just the three primary parts of Mercor's AI interviewer as defined at the very top (at least for the time being):
 
 1. **Pre-interview** starting page: User enters their GitHub profile, then clicks 'start interview'.
   - ![pre-interview starting page](docs/media/part1.png)
