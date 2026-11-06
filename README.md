@@ -20,7 +20,17 @@ From a context/business perspective, we can also break down the full functionali
  
 ## Merclone
 
-In Merclone, we will focus on just the three primary parts of an AI interviewer as broken down at the very top (at least for the time being). However, even this implementation is not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
+In Merclone, we will focus on just the three primary parts of an AI interviewer as defined at the very top (at least for the time being):
+
+1. **Pre-interview** starting page: User enters their GitHub profile, then clicks 'start interview'.
+  - ![pre-interview starting page](docs/media/part1.png)
+2. **Live interview:** User is prompted for mic access, and once this is received, they begin discussion with AI interviewer. The interviewer typically lets the conversation wrap up in less than ~5 minutes (as of the current V1.1), and will prompt the user to click 'End Interview' once it has completed questioning, although the user may choose to end at any time (ofc in this case at the risk of poorer interview results).
+  - ![live interview](docs/media/part2.png)
+3. **Post-interview** results page: After the interview transcript is analyzed, the results are graded (this takes up to 5 minutes; on rare occasions this may fail due to Merclone currently being on Gemini API's free tier, although based on testing this has been very uncommon). While the grading happens, users can save the URL of their results page, close out/navigate away from it, and then return at any time. Once grading is complete, the page automatically refreshes with a score out of 10 for the interviewee, feedback, and a full transcript of the conversation. 
+Here's a pretty much (very much) blurred out example of a test run, just to show the structure of the final results page, as well as what the grading output can potentially read like:
+  - ![results page](docs/media/part3.png)
+
+However, the implementation of these features was not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
 
 1. Parsing the users experience, i.e. processing their resume, scraping the links from their resume
 2. Post-start interview process. The first four below (a-d) are hard components for building a voice agent, minus the video
