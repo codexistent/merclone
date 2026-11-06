@@ -1,6 +1,11 @@
 # Background
 
-Mercor is a company whose business consists of two primary parts: an AI interviewer and data labeling. For their former product, there are two primary stakeholders:
+Mercor is a company whose business consists of two primary parts: an AI interviewer and data labeling. Broadly speaking, their AI interviewer can be broken down into three primary parts:
+- Starting page: interviewee enters their GitHub profile, for which our app then scrapes the info of to gain context for the AI interviewer 
+- Interview: the actual interview, hosted with a realtime AI voice model
+- Results page: the results of the interview (for our app, this may currently take up to 2-3 minutes) and a transcript of the conversation are displyed
+
+From a context/business perspective, we can also break down the full functionality through two stakeholders:
 
 - Talent
   - Select form a list of jobs
@@ -11,7 +16,7 @@ Mercor is a company whose business consists of two primary parts: an AI intervie
   - Click into each job listing
   - View candidates' recorded interviews
 
-The implementation, however, is not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
+In Merclone, we will focus on just the three primary parts of an AI interviewer as broken down at the very top (at least for the time being). However, even this implementation is not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
 
 1. Parsing the users experience, i.e. processing their resume, scraping the links from their resume
 2. Post-start interview process. The first four below (a-d) are hard components for building a voice agent, minus the video
@@ -233,3 +238,10 @@ The grading/results frontend lives under `components/Result.tsx`, which is, clea
 A quick bug which appeared during testing was that the interview results weren't fetching. Thus turned out to be because we defined but never called `poll()` to fetch our interview results before returning from our function, which we fixed by plainly adding `poll()` on line 54.
 
 # Development - V1.1
+
+In this update, made the following bug fixes and improvements:
+- `fix-connecting` branch - added handler for if socket disconnects from browser; otherwise, interview may be stuck at `Connecting...` forever. Later on we can add capabilities to reconnect if the websocket ever breaks connection (we currently are only able to resolve Gemini disconnections but not those of the former type).
+- `fix-retry` branch - retries Gemini grading up to three times if the AI server throws any of the following errors:
+  - 429: too many requests
+  - 500: internal server error on Gemini's end
+  - 503: Gemini temporarily unavailable due to high demand

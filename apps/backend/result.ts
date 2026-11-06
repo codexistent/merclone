@@ -1,10 +1,12 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ApiError } from "@google/genai";
 import { buildGraderPrompt } from "./prompts";
 import z from "zod";
 import { prisma } from "./db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-const MODEL = process.env.GEMINI_GRADER_MODEL ?? "gemini-3.8-flash";
+const MODELS = (process.env.GEMINI_GRADER_MODELS ?? process.env.GEMINI_GRADER_MODEL ?? "gemini-3.8-flash") // includes fallback models in case one doesn't work
+  .split(",").map((m) => m.trim()).filter(Boolean);
+const RETRYABLE = new Set([429, 500, 503]);
 
 const GradeSchema = z.object({
   score: z.number().int().min(0),
@@ -13,15 +15,27 @@ const GradeSchema = z.object({
 
 // use Gemini text model to grade transcript
 async function grade(transcript: string) {
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: buildGraderPrompt(transcript),
-    config: {
-      responseMimeType: "application/json",
-      responseJsonSchema: z.toJSONSchema(GradeSchema),
-    },
-  });
-  return GradeSchema.parse(JSON.parse(response.text ?? ""));
+  let lastError: unknown;
+  for(const model of MODELS){
+    for(let attempt = 1; attempt <= 2; attempt++){
+      try{
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: buildGraderPrompt(transcript),
+          config: {
+            responseMimeType: "application/json",
+            responseJsonSchema: z.toJSONSchema(GradeSchema),
+          },
+        });
+        return GradeSchema.parse(JSON.parse(response.text ?? ""));
+      }catch(error){
+        const retryable = error instanceof ApiError && RETRYABLE.has(error.status);
+        if(!retryable || attempt >= 4) throw error;
+        console.warn(`Grader returned ${error.status}, retry ${attempt}/3`);
+        await new Promise((r) => setTimeout(r, 2000 * 2 ** (attempt - 1)));
+      }
+    }
+  }
 }
 
 // safe to call more than once - only caller claiming row does any work

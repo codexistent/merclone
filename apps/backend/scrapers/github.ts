@@ -27,6 +27,8 @@ export async function scrapeGitHub(username: string): Promise<GithubRepo[]> {
     name: x.name,
     fullName: x.full_name,
     starCount: x.stargazers_count,
+    language: x.langage,
+    stars: x.stargazers_count
   }));
 
   return filteredUserRepos;

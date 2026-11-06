@@ -89,7 +89,7 @@ export function Result(){
           <Loader2 className="size-7 animate-spin text-muted-foreground" />
           <div>
             <p className="font-medium">Analysing your interview...</p>
-            <p className="mt-1 text-sm text-muted-foreground">This usually takes a few seconds.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Check back in 5 minutes.</p>
           </div>
         </div>
       ) : (
@@ -141,7 +141,7 @@ export function Result(){
                     </div>
                     <div className={cn("max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
                       isAi ? "rounded-tl-sm bg-card text-foreground"
-                        : "rounded-tr-sm bg-card text-primary-foreground"
+                        : "rounded-tr-sm bg-primary text-primary-foreground"
                     )}>
                       {m.content}
                     </div>
