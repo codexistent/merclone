@@ -1,11 +1,13 @@
 # Background
 
+## Mercor
+
 Mercor is a company whose business consists of, for the most part, two portions: an AI interviewer and B2B data labeling. Broadly speaking, their AI interviewer can be broken down into three primary parts:
 - Starting page: interviewee enters their GitHub profile, for which our app then scrapes the info of to gain context for the AI interviewer 
 - Interview: the actual interview, hosted with a realtime AI voice model
 - Results page: the results of the interview (for our app, this may currently take up to 2-3 minutes) and a transcript of the conversation are displyed
 
-From a context/business perspective, we can also break down the full functionality through two stakeholders:
+From a context/business perspective, we can also break down the full functionality through the lens of stakeholders:
 
 - Talent
   - Select form a list of jobs
@@ -15,6 +17,8 @@ From a context/business perspective, we can also break down the full functionali
 - Recruiters/Companies
   - Click into each job listing
   - View candidates' recorded interviews
+ 
+## Merclone
 
 In Merclone, we will focus on just the three primary parts of an AI interviewer as broken down at the very top (at least for the time being). However, even this implementation is not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
 
