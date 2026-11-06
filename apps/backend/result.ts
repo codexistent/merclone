@@ -4,7 +4,7 @@ import z from "zod";
 import { prisma } from "./db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-const MODEL = process.env.GEMINI_GRADER_MODEL ?? "gemini-3.8.flash";
+const MODEL = process.env.GEMINI_GRADER_MODEL ?? "gemini-3.8-flash";
 
 const GradeSchema = z.object({
   score: z.number().int().min(0),
