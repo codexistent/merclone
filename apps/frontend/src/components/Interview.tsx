@@ -56,6 +56,15 @@ export function Interview() {
       }
     };
 
+    let ended = false;
+
+    socket.onclose = (event) => {
+      if(cancelled || ended) return;
+      if(socketRef.current !== socket) return;
+      toast("Connection to the interviewer was lost.");
+      navigate(`/result/${interviewId}`);
+    };
+
     const tick = () => {
       setAiLevel(speaker.level());
       setUserLevel(mic.level());

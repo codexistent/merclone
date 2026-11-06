@@ -231,3 +231,5 @@ After the interview, we call Gemini again--not a live voice, but a text model--t
 The grading/results frontend lives under `components/Result.tsx`, which is, clearly, rendered in `App.tsx`. Its workflow simply consists of fetching the results via an HTTP request which `index.ts` receives and returns data from the database before finally displaying it to the user.
 
 A quick bug which appeared during testing was that the interview results weren't fetching. Thus turned out to be because we defined but never called `poll()` to fetch our interview results before returning from our function, which we fixed by plainly adding `poll()` on line 54.
+
+# Development - V1.1
