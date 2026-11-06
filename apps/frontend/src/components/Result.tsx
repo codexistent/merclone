@@ -33,7 +33,7 @@ export function Result(){
     // fetch interview results
     const poll = async() => {
       try {
-        const { data } = await axios.get<ResultData>(`${BACKEND_URL}/api/v1/${interviewId}`);
+        const { data } = await axios.get<ResultData>(`${BACKEND_URL}/api/v1/result/${interviewId}`);
         if(cancelled) return;
 
         setResult(data);
@@ -50,6 +50,8 @@ export function Result(){
       }
       timeoutId = setTimeout(poll, POLL_MS);
     };
+
+    poll();
 
     return () => {
       cancelled = true;
