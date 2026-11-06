@@ -7,7 +7,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const MODEL = process.env.GEMINI_GRADER_MODEL ?? "gemini-3.8.flash";
 
 const GradeSchema = z.object({
-  score: z.number().int().min(0).max(0),
+  score: z.number().int().min(0),
   feedback: z.string(),
 });
 
