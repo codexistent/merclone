@@ -169,6 +169,8 @@ We built the first version of our app using the following languages, libraries a
 - **PostgreSQL** for our database
 - **Gemini AI Studio** for its voice and text APIs
 - **React Router** for routing
+- **Neon** for deployment Postgres
+- **Render** for deployment websocket
 
 Our primary file structure reads cleanly as:
 
