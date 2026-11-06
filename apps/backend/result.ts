@@ -6,7 +6,12 @@ import { prisma } from "./db";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const MODELS = (process.env.GEMINI_GRADER_MODELS ?? process.env.GEMINI_GRADER_MODEL ?? "gemini-3.8-flash") // includes fallback models in case one doesn't work
   .split(",").map((m) => m.trim()).filter(Boolean);
-const RETRYABLE = new Set([429, 500, 503]);
+const TIMEOUT_MS = 45_000;
+  
+// only give up immediately on errors another model or attempt can't fix
+function isFatal(error: unknown) {
+  return error instanceof ApiError && [400, 401, 403].includes(error.status);
+}
 
 const GradeSchema = z.object({
   score: z.number().int().min(0),
@@ -25,17 +30,21 @@ async function grade(transcript: string) {
           config: {
             responseMimeType: "application/json",
             responseJsonSchema: z.toJSONSchema(GradeSchema),
+            httpOptions: { timeout: TIMEOUT_MS }
           },
         });
         return GradeSchema.parse(JSON.parse(response.text ?? ""));
       }catch(error){
-        const retryable = error instanceof ApiError && RETRYABLE.has(error.status);
-        if(!retryable || attempt >= 4) throw error;
-        console.warn(`Grader returned ${error.status}, retry ${attempt}/3`);
-        await new Promise((r) => setTimeout(r, 2000 * 2 ** (attempt - 1)));
+        if(isFatal(error)) throw error;
+        lastError = error;
+        const reason = error instanceof ApiError ? error.status : (error as Error)?.name;
+
+        console.warn(`Grader ${model} failed (${reason}), attempt ${attempt}/2`);
+        await new Promise((r) => setTimeout(r, 2000 * attempt));
       }
     }
   }
+  throw lastError;
 }
 
 // safe to call more than once - only caller claiming row does any work
