@@ -251,3 +251,4 @@ In this update, made the following bug fixes and improvements:
   - 429: too many requests
   - 500: internal server error on Gemini's end
   - 503: Gemini temporarily unavailable due to high demand
+- `fix/last-message` branch - fixed bug where user's last audio message is not recorded in transcript. Resolved via edits in `liveSession.ts`.

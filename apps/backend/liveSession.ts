@@ -21,6 +21,8 @@ export class InterviewBridge {
   private connectionId = 0; // lets us ignore callbacks from a replaced connection
   private started = false;
   private finished = false;
+  private ending = false;
+  private lastInputAt = 0;
 
   private userText = "";
   private aiText = "";
@@ -41,6 +43,7 @@ export class InterviewBridge {
 
   private onBrowserMessage(data: RawData, isBinary: boolean) {
     if (isBinary) {
+      if(this.ending) return;
       this.gemini?.sendRealtimeInput({
         audio: {
           data: (data as Buffer).toString("base64"),
@@ -52,7 +55,7 @@ export class InterviewBridge {
 
     const message = JSON.parse(data.toString());
     if (message.type === "start") void this.start();
-    if (message.type === "end") void this.finish();
+    if (message.type === "end") void this.endSoftly();
   }
 
   // runs once once mic has access
@@ -138,13 +141,18 @@ export class InterviewBridge {
     const content = message.serverContent;
     if (!content) return;
 
-    this.userText += content.inputTranscription?.text ?? "";
-    this.aiText += content.outputTranscription?.text ?? "";
+    if(content.inputTranscription?.text){
+      this.userText += content.inputTranscription.text;
+      this.lastInputAt = Date.now();
+    }
 
-    for (const part of content.modelTurn?.parts ?? []) {
+    if(!this.ending){
+      this.aiText += content.inputTranscription?.text ?? "";
+      for (const part of content.modelTurn?.parts ?? []) {
       if (part.inlineData?.data && this.browser.readyState === WebSocket.OPEN) {
         this.browser.send(Buffer.from(part.inlineData.data, "base64"));
       }
+    }
     }
 
     if (content.interrupted) this.sendJson({ type: "interrupted" });
@@ -206,6 +214,21 @@ export class InterviewBridge {
     if (this.browser.readyState === WebSocket.OPEN) this.browser.close();
 
     await finishInterview(this.interviewId);
+  }
+
+  // makes sure to record last message before 'end interview' clicked
+  private async endSoftly(){
+    if(this.ending || this.finished) return;
+
+    this.ending = true;
+    this.lastInputAt = Date.now();
+    this.gemini?.sendRealtimeInput({ audioStreamEnd: true });
+
+    const deadline = Date.now() + 5000;
+    while(Date.now() < deadline && Date.now() - this.lastInputAt < 1500){
+      await new Promise ((r) => setTimeout(r, 200));
+    }
+    await this.finish();
   }
 
   private sendJson(message: object) {
