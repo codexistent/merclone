@@ -147,7 +147,7 @@ export class InterviewBridge {
     }
 
     if(!this.ending){
-      this.aiText += content.inputTranscription?.text ?? "";
+      this.aiText += content.outputTranscription?.text ?? "";
       for (const part of content.modelTurn?.parts ?? []) {
       if (part.inlineData?.data && this.browser.readyState === WebSocket.OPEN) {
         this.browser.send(Buffer.from(part.inlineData.data, "base64"));

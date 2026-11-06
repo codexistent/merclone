@@ -30,7 +30,7 @@ In Merclone, we will focus on just the three primary parts of an AI interviewer 
    d. Small language Model, SLM for reasoning about user responses. A larger model would have more latency which would not be ideal.
    e. For adding video for interviewer, you'd need to add real-time video generation model. Less of these--or at least, quality open-source ones--currently exist compared to TTS and STT models, and otherwise non-self hosted models are typically very expensive (i.e. 5x more than for steps a-d).
 
-The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Parts 2-3, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, for these parts, Claude Code was used to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own
+The architecture analysis below primarily references and builds on this tutorial: https://www.youtube.com/watch?v=iNJ7z4YLQFk&t=1066s. The documentation below comes from a combination of what was covered in the video and my own explanations & considerations. For development (see the sections below), our Part 1: Scrape is built based on the tutorial. However, in Parts 2-3, we use the Gemini instead of OpenAI API due to costs, making our implementation differ significantly. Specifically, for these parts, Claude Code was used to discuss architecture tweaks due to our usage of a different AI model/provider, with the implementation and final decisions made on my own.
 
 # Architecture
 
@@ -251,4 +251,4 @@ In this update, made the following bug fixes and improvements:
   - 429: too many requests
   - 500: internal server error on Gemini's end
   - 503: Gemini temporarily unavailable due to high demand
-- `fix/last-message` branch - fixed bug where user's last audio message is not recorded in transcript. Resolved via edits in `liveSession.ts`.
+- `fix/last-message` branch (was supposed to be on this branch, but accidentally implemented under `main`) - fixed bug where user's last audio message is not recorded in transcript. Resolved via adding an `endSoftly()` function in `liveSession.ts`.
