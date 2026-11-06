@@ -233,3 +233,10 @@ The grading/results frontend lives under `components/Result.tsx`, which is, clea
 A quick bug which appeared during testing was that the interview results weren't fetching. Thus turned out to be because we defined but never called `poll()` to fetch our interview results before returning from our function, which we fixed by plainly adding `poll()` on line 54.
 
 # Development - V1.1
+
+In this update, made the following bug fixes and improvements:
+- `fix-connecting` branch - added handler for if socket disconnects from browser; otherwise, interview may be stuck at `Connecting...` forever. Later on we can add capabilities to reconnect if the websocket ever breaks connection (we currently are only able to resolve Gemini disconnections but not those of the former type).
+- `fix-retry` branch - retries Gemini grading up to three times if the AI server throws any of the following errors:
+  - 429: too many requests
+  - 500: internal server error on Gemini's end
+  - 503: Gemini temporarily unavailable due to high demand
