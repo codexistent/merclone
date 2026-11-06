@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { BACKEND_URL } from "@/lib/config";
 import { useNavigate } from "react-router";
+import { useEffect } from "react";
 
 export function Form() {
   const [github, setGithub] = useState("");
@@ -13,6 +14,9 @@ export function Form() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  // wake up backend while user types
+  useEffect(() => { axios.get(`${BACKEND_URL}/health`).catch(() => {}); }, []);
 
   async function onSubmit() {
     if (!github /* || !linkedin*/) {
@@ -73,10 +77,13 @@ export function Form() {
             onChange={(e) => setGithub(e.target.value)}
           />
         </div>
-        <div className="flex justify-center p-4">
-          <Button disabled={loading} onClick={onSubmit}>
+        <div className="flex flex-col items-center p-4">
+          <Button disabled={loading} onClick={onSubmit} className="!mb-0">
             {loading ? "Starting Interview..." : "Start Interview"}
           </Button>
+          <p className="!m-0 !mt-2.5 !leading-none text-xs text-gray-500">
+            {loading ? "This may take up to a minute." : "Enter GitHub URL, then hit 'Start Interview'."}
+          </p>
         </div>
       </div>
     </div>

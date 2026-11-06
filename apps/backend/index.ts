@@ -87,6 +87,7 @@ server.on("upgrade", (req, socket, head) => {
   });
 });
 
-server.listen(3001, () => {
-  console.log("Backend running at http://localhost:3001");
-});
+app.get("/health", (_req, res) => { res.send("ok"); });
+
+const PORT = Number(process.env.PORT ?? 3001);
+server.listen(PORT, () => console.log(`Backend running on ${PORT}`));
