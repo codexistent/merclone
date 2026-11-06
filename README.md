@@ -215,12 +215,17 @@ There are a few key parts which work together to make the live interviews possib
 - Audio handling - since we have a Websocket instead of WebRTC, we must implement handling raw PCM audio. This code is in `audio.ts` under `frontend/`, because clearly only our browser, and not the backend server, has mic and speakers.
   - ![mic architecture](docs/media/microphone.png)
   - ![speaker architecture](docs/media/speaker.png)
-  
+
 ### Frontend
 The interview frontend lives in `Interview.tsx`. It also uses a new `VoiceOrb.tsx` component for visualizing the speakers' audio levels. 
 
 ## Part 3: Grader/Results
 
+### Backend
 All grading logic lives in `apps/backend/results.ts`.
 
-After the interview, we call Gemini again--not a live voice, but a text model--to generate feedback and process the interview results. The function `finishInterview()` implements this logic. It triggers once after the end of each interview. Before calling `grade()`, it starts by querying the database for the interview to see if its status is still `InProgress` (which means we are yet to grade the transcript). If so, we switch the interview's status to `Grading`, asyncronously fetch Gemini's graded results, and post both these results and the new status `Done` to the interview which we identify again via id.
+After the interview, we call Gemini again--not a live voice, but a text model--to generate feedback and process the interview results. The function `finishInterview()` implements this logic. It triggers once after the end of each interview. Before calling `grade()`, it starts by querying the database for the interview to see if its status is still `InProgress` (which means we are yet to grade the transcript). If so, we switch the interview's status to `Grading`, asyncronously fetch Gemini's graded results, and post both these results and the new status `Done` to the interview in the database which we identify again via id.
+
+### Frontend
+
+The grading/results frontend lives under `components/Result.tsx`, which is, clearly, rendered in `App.tsx`. Its workflow simply consists of fetching the results via an HTTP request which `index.ts` receives and returns data from the database before finally displaying it to the user.
