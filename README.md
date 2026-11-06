@@ -1,6 +1,6 @@
 # Background
 
-Mercor is a company whose business consists of two primary parts: an AI interviewer and data labeling. Broadly speaking, their AI interviewer can be broken down into three primary parts:
+Mercor is a company whose business consists of, for the most part, two portions: an AI interviewer and B2B data labeling. Broadly speaking, their AI interviewer can be broken down into three primary parts:
 - Starting page: interviewee enters their GitHub profile, for which our app then scrapes the info of to gain context for the AI interviewer 
 - Interview: the actual interview, hosted with a realtime AI voice model
 - Results page: the results of the interview (for our app, this may currently take up to 2-3 minutes) and a transcript of the conversation are displyed
