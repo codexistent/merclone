@@ -89,7 +89,7 @@ export function Result(){
           <Loader2 className="size-7 animate-spin text-muted-foreground" />
           <div>
             <p className="font-medium">Analysing your interview...</p>
-            <p className="mt-1 text-sm text-muted-foreground">This usually takes a few seconds.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Check back in 5 minutes.</p>
           </div>
         </div>
       ) : (

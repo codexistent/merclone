@@ -1,6 +1,11 @@
 # Background
 
-Mercor is a company whose business consists of two primary parts: an AI interviewer and data labeling. For their former product, there are two primary stakeholders:
+Mercor is a company whose business consists of two primary parts: an AI interviewer and data labeling. Broadly speaking, their AI interviewer can be broken down into three primary parts:
+- Starting page: interviewee enters their GitHub profile, for which our app then scrapes the info of to gain context for the AI interviewer 
+- Interview: the actual interview, hosted with a realtime AI voice model
+- Results page: the results of the interview (for our app, this may currently take up to 2-3 minutes) and a transcript of the conversation are displyed
+
+From a context/business perspective, we can also break down the full functionality through two stakeholders:
 
 - Talent
   - Select form a list of jobs
@@ -11,7 +16,7 @@ Mercor is a company whose business consists of two primary parts: an AI intervie
   - Click into each job listing
   - View candidates' recorded interviews
 
-The implementation, however, is not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
+In Merclone, we will focus on just the three primary parts of an AI interviewer as broken down at the very top (at least for the time being). However, even this implementation is not as trivial as it may seem from the surface. The primary challenges for implementation are as follows:
 
 1. Parsing the users experience, i.e. processing their resume, scraping the links from their resume
 2. Post-start interview process. The first four below (a-d) are hard components for building a voice agent, minus the video
